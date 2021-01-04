@@ -25,7 +25,7 @@ const server = http.createServer(function(req, res) {
 		var raw_status_data = "";
 
 		try {
-		  raw_status_data = fs.readFileSync('status.json', 'utf8');
+		  raw_status_data = fs.readFileSync('server/status.json', 'utf8');
 		} catch (err) {
 		  console.error(err);
 		}
@@ -71,7 +71,7 @@ function serverStarter() {
 	if(start_requested && !server_running) {
 		server_running = true;
 
-		const proc = spawn("bash", ["start.sh"]);
+		const proc = spawn("bash", ["server/start.sh"]);
 
 		proc.stdout.on("data", data => {
 		    console.log(`stdout: ${data}`);

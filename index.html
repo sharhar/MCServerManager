@@ -17,22 +17,26 @@
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
 
 	<script type="text/javascript">
-		var server_status = -1;
+		var server_status = {
+			status: -1,
+			players: []
+		};
 
 		function gotStatus(status) {
-			if(server_status == -1) {
-				server_status = status;
+			if(server_status.status == -1) {
+				server_status.status = status.status;
+				server_status.players = status.players;
 			}
 
-			if(server_status != status) {
+			if(server_status.status != status.status || server_status.players.length != status.players.length) {
 				location.reload();
 			}
 		}
 
 		setInterval(function() {
-			fetch('/check')
+			fetch('/check', {method: 'POST'})
 			.then(response => response.json())
-			.then(data => gotStatus(data.status));
+			.then(data => gotStatus(data));
 		}, 1000);
     </script>
 </body>

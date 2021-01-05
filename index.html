@@ -34,7 +34,7 @@
 		}
 
 		setInterval(function() {
-			fetch('/check', {method: 'POST'})
+			fetch('/check')
 			.then(response => response.json())
 			.then(data => gotStatus(data));
 		}, 1000);

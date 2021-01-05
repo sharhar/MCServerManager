@@ -22,16 +22,6 @@ const server = http.createServer(function(req, res) {
 	if(req.method === 'POST') {
 		if(req.url == "/click") {
 			start_requested = true;
-		} else if (req.url == "/check") {
-			var raw_status_data = "";
-
-			try {
-			  raw_status_data = fs.readFileSync('server/status.json', 'utf8');
-			} catch (err) {
-			  console.error(err);
-			}
-			
-			res.end(raw_status_data);
 		}
 	} else {
 		var raw_status_data = "";

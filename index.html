@@ -10,28 +10,59 @@
 <main class="container">
 
   <div class="starter-template text-center py-5 px-3">
-    ___
+  	<div id="start">
+  		<h1>FTB Server Status<div style="color: gray;">Checking</div></h1>
+  	</div>
+  	<div id="offline" style="display: none;">
+  		<h1>FTB Server Status<div style="color: red;">Offline</div></h1>
+  		<button type="button" class="btn btn-outline-success btn-lg" id="serverStartButton" onclick="fetch('/click', {method: 'POST'})">Start Server</button>
+  	</div>
+  	<div id="init" style="display: none;">
+  		<h1>FTB Server Status<div style="color: orange;">Initializing...</div></h1>
+  		<br><h5>Server initialization will take several minutes. Please be patient.</h5>
+  	</div>
+  	<div id="online" style="display: none;">
+  		<h1>FTB Server Status<div style="color: green;">Online</div></h1>
+  		<br><h5>Players Currently Online (<div id="player_count" style="display: inline-block;"></div>)</h5>
+  		<div id="player_list"></div>
+  	</div>
   </div>
 
 </main>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
 
 	<script type="text/javascript">
-		var server_status = {
-			status: -1,
-			players: []
-		};
-
 		function gotStatus(status) {
-			if(server_status.status == -1) {
-				server_status.status = status.status;
-				server_status.players = status.players;
-			}
+			document.getElementById('start').style.display = 'none';
 
-			if(server_status.status != status.status || server_status.players.length != status.players.length) {
-				location.reload();
+			if(status.status == 0) {
+				document.getElementById('offline').style.display = 'initial';
+				document.getElementById('init').style.display = 'none';
+				document.getElementById('online').style.display = 'none';
+			} else if (status.status == 5) {
+				document.getElementById('offline').style.display = 'none';
+				document.getElementById('init').style.display = 'none';
+				document.getElementById('online').style.display = 'initial';
+
+				document.getElementById('player_count').innerHTML = status.players.length;
+
+				var player_list = "";
+
+				for(var i = 0; i < status.players.length; i++) {
+					player_list += "<br>" + status.players[i];
+				}
+
+				document.getElementById('player_list').innerHTML = player_list.substring(4);
+			} else {
+				document.getElementById('offline').style.display = 'none';
+				document.getElementById('init').style.display = 'initial';
+				document.getElementById('online').style.display = 'none';
 			}
 		}
+
+		fetch('/check')
+			.then(response => response.json())
+			.then(data => gotStatus(data));
 
 		setInterval(function() {
 			fetch('/check')

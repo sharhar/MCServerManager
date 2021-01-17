@@ -2,11 +2,14 @@ const http = require('http');
 const fs = require('fs');
 const { exec } = require("child_process");
 const { spawn } = require("child_process");
+const {streamWrite, streamEnd, onExit} = require('@rauschma/stringio');
 
 var start_requested = false;
 var server_running = false;
 
 var raw_html_data = "";
+
+var proc = null;
 
 try {
   raw_html_data = fs.readFileSync('index.html', 'utf8');
@@ -18,6 +21,13 @@ const server = http.createServer(function(req, res) {
 	if(req.method === 'POST') {
 		if(req.url == "/click") {
 			start_requested = true;
+		} else if (req.url.startsWith("/stop")) {
+			var pass = req.url.substring(6);
+			if(pass == "shahariscool" && proc != null) {
+				streamWrite(proc.stdin, 'stop');
+				streamEnd(proc.stdin);
+				//await onExit(proc);
+			}
 		}
 	} else {
 		var raw_status_data = "";
@@ -45,7 +55,7 @@ function serverStarter() {
 	if(start_requested && !server_running) {
 		server_running = true;
 
-		const proc = spawn("bash", ["server/start.sh"]);
+		proc = spawn("bash", ["server/start.sh"]);
 
 		proc.stdout.on("data", data => {
 		    console.log(`stdout: ${data}`);
@@ -61,6 +71,7 @@ function serverStarter() {
 
 		proc.on("close", code => {
 			server_running = false;
+			proc = null;
 		    console.log(`child process exited with code ${code}`);
 		});
 	}

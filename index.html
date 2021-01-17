@@ -25,6 +25,7 @@
   		<h1>FTB Server Status<div style="color: green;">Online</div></h1>
   		<br><h5>Players Currently Online (<div id="player_count" style="display: inline-block;"></div>)</h5>
   		<div id="player_list"></div>
+  		<button type="button" class="btn btn-outline-danger btn-lg" id="serverStartButton" style="position: absolute; bottom: 10px; left: 10px;" onclick="fetch('/stop-' + prompt('Enter password:'), {method: 'POST'})">Stop Server</button>
   	</div>
   </div>
 

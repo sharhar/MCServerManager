@@ -9,7 +9,6 @@ var server_running = false;
 
 var raw_html_data = "";
 
-var proc = null;
 
 try {
   raw_html_data = fs.readFileSync('index.html', 'utf8');
@@ -17,16 +16,25 @@ try {
   console.error(err);
 }
 
+var proc = null;
+
 const server = http.createServer(function(req, res) {
 	if(req.method === 'POST') {
 		if(req.url == "/click") {
 			start_requested = true;
-		} else if (req.url.startsWith("/stop")) {
-			var pass = req.url.substring(6);
-			if(pass == "shahariscool" && proc != null) {
-				streamWrite(proc.stdin, 'stop');
-				streamEnd(proc.stdin);
-				//await onExit(proc);
+		} 
+
+		if(proc != null) {
+			if (req.url.startsWith("/stop")) {
+				var pass = req.url.substring(6);
+				if(pass == "shahariscool") {
+					streamWrite(proc.stdin, 'stop\n');
+					streamEnd(proc.stdin);
+				}
+			} else if (req.url == "/day") {
+					streamWrite(proc.stdin, 'time set day\n');
+			} else if (req.url == "/night") {
+					streamWrite(proc.stdin, 'time set night\n');
 			}
 		}
 	} else {
@@ -71,6 +79,7 @@ function serverStarter() {
 
 		proc.on("close", code => {
 			server_running = false;
+			start_requested = false;
 			proc = null;
 		    console.log(`child process exited with code ${code}`);
 		});

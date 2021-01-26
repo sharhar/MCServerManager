@@ -23,6 +23,8 @@
   	</div>
   	<div id="online" style="display: none;">
   		<h1>FTB Server Status<div style="color: green;">Online</div></h1>
+  		<button type="button" class="btn btn-outline-warning btn-lg" id="serverStartButton" style="position: absolute; top: 10px; left: 10px;"  onclick="fetch('/day', {method: 'POST'})">Set day</button>
+  		<button type="button" class="btn btn-outline-dark btn-lg" id="serverStartButton" style="position: absolute; top: 70px; left: 10px;"  onclick="fetch('/night', {method: 'POST'})">Set night</button>
   		<br><h5>Players Currently Online (<div id="player_count" style="display: inline-block;"></div>)</h5>
   		<div id="player_list"></div>
   		<button type="button" class="btn btn-outline-danger btn-lg" id="serverStartButton" style="position: absolute; bottom: 10px; left: 10px;" onclick="fetch('/stop-' + prompt('Enter password:'), {method: 'POST'})">Stop Server</button>

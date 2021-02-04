@@ -9,7 +9,6 @@ var server_running = false;
 
 var raw_html_data = "";
 
-
 try {
   raw_html_data = fs.readFileSync('index.html', 'utf8');
 } catch (err) {
@@ -35,8 +34,15 @@ const server = http.createServer(function(req, res) {
 					streamWrite(proc.stdin, 'time set day\n');
 			} else if (req.url == "/night") {
 					streamWrite(proc.stdin, 'time set night\n');
+			} else if (req.url == "/wc") {
+					streamWrite(proc.stdin, 'weather clear\n');
+			} else if (req.url.startsWith("/tp")) {
+					var url_parts = req.url.split("-");
+					streamWrite(proc.stdin, "tp " + url_parts[1] + " " + url_parts[2] + '\n');
 			}
 		}
+
+		
 	} else {
 		var raw_status_data = "";
 
@@ -49,6 +55,14 @@ const server = http.createServer(function(req, res) {
 		if(req.url == '/check') {
 			res.end(raw_status_data);
 		} else {
+			if(process.argv[2] == "--dynamic" || process.argv[2] == "-d" ) {
+				try {
+				  raw_html_data = fs.readFileSync('index.html', 'utf8');
+				} catch (err) {
+				  console.error(err);
+				}
+			}
+			
 			res.write(raw_html_data);
 			res.end();
 		}
@@ -59,6 +73,13 @@ server.listen(80, function() {
 	console.log('Server running at http://127.0.0.1:80');
 });
 
+function custom_log(dat) {
+	if(dat.endsWith("\n")) {
+		dat = dat.substring(0, dat.length - 1);
+	}
+	console.log(dat);
+}
+
 function serverStarter() {
 	if(start_requested && !server_running) {
 		server_running = true;
@@ -66,7 +87,7 @@ function serverStarter() {
 		proc = spawn("bash", ["server/start.sh"]);
 
 		proc.stdout.on("data", data => {
-		    console.log(`stdout: ${data}`);
+		    custom_log(`${data}`);
 		});
 
 		proc.stderr.on("data", data => {

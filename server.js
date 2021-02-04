@@ -42,7 +42,8 @@ const server = http.createServer(function(req, res) {
 			}
 		}
 
-		
+		res.write('{"status": "ok"}');
+		res.end();
 	} else {
 		var raw_status_data = "";
 

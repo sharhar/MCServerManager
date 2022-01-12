@@ -1,1 +1,1 @@
-# FTBServerMonitor
+# MCServerMonitor

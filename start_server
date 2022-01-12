@@ -1,3 +1,5 @@
+#! /usr/bin/node
+
 const http = require('http');
 const fs = require('fs');
 const { exec } = require("child_process");
@@ -72,6 +74,12 @@ server.listen(80, function() {
 	console.log('Server running at http://127.0.0.1:80');
 });
 
+function decomposeStdout(dat) {
+	if(dat.endsWith("\n")) {
+		dat = dat.substring(0, dat.length - 1);
+	}
+}
+
 function proc_stdout(dat) {
 	if(dat.includes("Preparing spawn area")) {
 		state.percent = parseInt(dat.substring(dat.length - 4, dat.length - 2));
@@ -92,7 +100,9 @@ function serverStarter() {
 	if(start_requested && !server_running) {
 		server_running = true;
 
-		proc = spawn("bash", ["./start.sh"]);
+		process.chdir('./server')
+		proc = spawn("java", ["-Xmx8G", "-jar", "server.jar"]);
+		process.chdir('..')
 
 		state.percent = 0;
 		state.status = 1;
@@ -121,7 +131,7 @@ function serverStarter() {
 
 	start_requested = false;
 
-	setTimeout(serverStarter, 1000); 
+	setTimeout(serverStarter, 100); 
 }
 
 setTimeout(serverStarter, 0); 

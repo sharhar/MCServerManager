@@ -2,7 +2,6 @@
 
 const http = require('http');
 const fs = require('fs');
-const { exec } = require("child_process");
 const { spawn } = require("child_process");
 const {streamWrite, streamEnd, onExit} = require('@rauschma/stringio');
 
@@ -15,13 +14,16 @@ var state = {
 var start_requested = false;
 var server_running = false;
 
-var raw_html_data = "";
-
-try {
-  raw_html_data = fs.readFileSync('index.html', 'utf8');
-} catch (err) {
-  console.error(err);
+function load_html() {
+	try {
+		return fs.readFileSync('index.html', 'utf8');
+	} catch (err) {
+		console.error(err);
+		return null;
+	}
 }
+
+var html_cache = load_html();
 
 var proc = null;
 
@@ -57,15 +59,10 @@ const server = http.createServer(function(req, res) {
 			res.end(JSON.stringify(state));
 		} else {
 			if(process.argv[2] == "--dynamic" || process.argv[2] == "-d" ) {
-				try {
-				  raw_html_data = fs.readFileSync('index.html', 'utf8');
-				} catch (err) {
-				  console.error(err);
-				}
+				res.end(load_html());
+			} else {
+				res.end(html_cache);
 			}
-			
-			res.write(raw_html_data);
-			res.end();
 		}
 	}
 });

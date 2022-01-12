@@ -4,6 +4,12 @@ const { exec } = require("child_process");
 const { spawn } = require("child_process");
 const {streamWrite, streamEnd, onExit} = require('@rauschma/stringio');
 
+var state = {
+	"status": 0, 
+	"percent": 0,
+	"players": []
+};
+
 var start_requested = false;
 var server_running = false;
 
@@ -45,16 +51,8 @@ const server = http.createServer(function(req, res) {
 		res.write('{"status": "ok"}');
 		res.end();
 	} else {
-		var raw_status_data = "";
-
-		try {
-		  raw_status_data = fs.readFileSync('server/status.json', 'utf8');
-		} catch (err) {
-		  console.error(err);
-		}
-
 		if(req.url == '/check') {
-			res.end(raw_status_data);
+			res.end(JSON.stringify(state));
 		} else {
 			if(process.argv[2] == "--dynamic" || process.argv[2] == "-d" ) {
 				try {
@@ -74,10 +72,19 @@ server.listen(80, function() {
 	console.log('Server running at http://127.0.0.1:80');
 });
 
-function custom_log(dat) {
+function proc_stdout(dat) {
+	if(dat.includes("Preparing spawn area")) {
+		state.percent = parseInt(dat.substring(dat.length - 4, dat.length - 2));
+		state.status = 2;
+	} else if (dat.includes('For help, type "help"')) {
+		state.percent = 0;
+		state.status = 3;
+	}
+
 	if(dat.endsWith("\n")) {
 		dat = dat.substring(0, dat.length - 1);
 	}
+
 	console.log(dat);
 }
 
@@ -87,8 +94,11 @@ function serverStarter() {
 
 		proc = spawn("bash", ["./start.sh"]);
 
+		state.percent = 0;
+		state.status = 1;
+
 		proc.stdout.on("data", data => {
-		    custom_log(`${data}`);
+		    proc_stdout(`${data}`);
 		});
 
 		proc.stderr.on("data", data => {
@@ -103,6 +113,8 @@ function serverStarter() {
 			server_running = false;
 			start_requested = false;
 			proc = null;
+			state.percent = 0;
+			state.status = 0;
 		    console.log(`child process exited with code ${code}`);
 		});
 	}

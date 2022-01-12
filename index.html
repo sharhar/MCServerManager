@@ -18,9 +18,26 @@
   		<button type="button" class="btn btn-outline-success btn-lg" onclick="fetch('/click', {method: 'POST'})">Start Server</button>
   	</div>
   	<div id="init" style="display: none;">
-  		<h1>FTB Server Status<div style="color: orange;">Initializing...</div></h1>
-  		<br><h5>Server initialization will take several minutes. Please be patient.</h5>
+  		<h1>FTB Server Status<div style="color: orange;">Starting...</div></h1>
+  		<br><h5>Server initialization will take around 30 seconds. Please be patient.</h5>
   	</div>
+	<div id="load" style="display: none;">
+		<h1>FTB Server Status<div style="color: orange;">Loading world...</div></h1>
+
+		<br>
+
+		<div id="myProgress" style="width: 100%; background-color: lightgray; border-style: solid; border-color: black;">
+			<div id="myBar" style="width: 1%; height: 30px; background-color: green;"></div>
+		</div>
+
+		<br>
+
+		<div id="percent">
+			<h5>0%</h5>
+		</div>
+
+		<!-- <br><h5>Server loading will take several minutes. Please be patient.</h5> -->
+	</div>
   	<div id="online" style="display: none;">
   		<h1>FTB Server Status<div style="color: green;">Online</div></h1>
   		<button type="button" class="btn btn-outline-warning btn-lg" style="position: absolute; top: 10px; left: 10px;"  onclick="fetch('/day', {method: 'POST'})">Set day</button>
@@ -54,6 +71,35 @@
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js" integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW" crossorigin="anonymous"></script>
 
 	<script type="text/javascript">
+		function setVisibility(num) {
+			switch(num) {
+				case 0:
+					document.getElementById('offline').style.display = 'initial';
+					document.getElementById('init').style.display = 'none';
+					document.getElementById('load').style.display = 'none';
+					document.getElementById('online').style.display = 'none';
+					break;
+				case 1:
+					document.getElementById('offline').style.display = 'none';
+					document.getElementById('init').style.display = 'initial';
+					document.getElementById('load').style.display = 'none';
+					document.getElementById('online').style.display = 'none';
+					break;
+				case 2:
+					document.getElementById('offline').style.display = 'none';
+					document.getElementById('init').style.display = 'none';
+					document.getElementById('load').style.display = 'initial';
+					document.getElementById('online').style.display = 'none';
+					break;
+				case 3:
+					document.getElementById('offline').style.display = 'none';
+					document.getElementById('init').style.display = 'none';
+					document.getElementById('load').style.display = 'none';
+					document.getElementById('online').style.display = 'initial';
+					break;
+			} 
+		}
+
 		function teleport() {
 			var p1 = document.getElementById('p1').value;
 			var p2 = document.getElementById('p2').value;
@@ -71,11 +117,9 @@
 		function gotStatus(status) {
 			document.getElementById('start').style.display = 'none';
 
-			if(status.status == 0) {
-				document.getElementById('offline').style.display = 'initial';
-				document.getElementById('init').style.display = 'none';
-				document.getElementById('online').style.display = 'none';
-			} else if (status.status == 5) {
+			setVisibility(status.status);
+
+			if (status.status == 3) {
 				document.getElementById('offline').style.display = 'none';
 				document.getElementById('init').style.display = 'none';
 				document.getElementById('online').style.display = 'initial';
@@ -117,13 +161,14 @@
 				if(status.players.length > 1) {
 					document.getElementById('teleport-div').style.display = 'initial';
 				} else {
-
 					document.getElementById('teleport-div').style.display = 'none';
 				}
-			} else {
-				document.getElementById('offline').style.display = 'none';
-				document.getElementById('init').style.display = 'initial';
-				document.getElementById('online').style.display = 'none';
+			} else if (status.status == 2) {
+				var elemBar = document.getElementById("myBar");
+				elemBar.style.width = status.percent + "%";
+
+				var elemText = document.getElementById("percent");
+				elemText.innerHTML = "<h5>" + status.percent + "%</h5>"
 			}
 		}
 

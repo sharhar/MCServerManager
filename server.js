@@ -85,7 +85,7 @@ function serverStarter() {
 	if(start_requested && !server_running) {
 		server_running = true;
 
-		proc = spawn("bash", ["server/start.sh"]);
+		proc = spawn("bash", ["./start.sh"]);
 
 		proc.stdout.on("data", data => {
 		    custom_log(`${data}`);

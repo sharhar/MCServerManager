@@ -1,4 +1,4 @@
-#! /usr/bin/node
+#!/bin/node 
 
 const http = require('http');
 const fs = require('fs');
@@ -6,7 +6,7 @@ const { spawn } = require("child_process");
 const {streamWrite, streamEnd, onExit} = require('@rauschma/stringio');
 
 var state = {
-	"status": 0, 
+	"status": 0,
 	"percent": 0,
 	"players": []
 };
@@ -71,12 +71,6 @@ server.listen(80, function() {
 	console.log('Server running at http://127.0.0.1:80');
 });
 
-function decomposeStdout(dat) {
-	if(dat.endsWith("\n")) {
-		dat = dat.substring(0, dat.length - 1);
-	}
-}
-
 function proc_stdout(dat) {
 	if(dat.includes("Preparing spawn area")) {
 		state.percent = parseInt(dat.substring(dat.length - 4, dat.length - 2));
@@ -84,6 +78,27 @@ function proc_stdout(dat) {
 	} else if (dat.includes('For help, type "help"')) {
 		state.percent = 0;
 		state.status = 3;
+	} else if (dat.includes(' joined the game')) {
+		parts = dat.split(':');
+		finalPart = parts[parts.length - 1].substring(1);
+		playerName = finalPart.substring(0, finalPart.length - 17);
+
+		state.players.push(playerName)
+
+	} else if (dat.includes(' left the game')) {
+		parts = dat.split(':');
+		finalPart = parts[parts.length - 1].substring(1);
+		playerName = finalPart.substring(0, finalPart.length - 15);
+
+		newPlayerArr = []
+
+		for(var i = 0; i < state.players.length; i++) {
+			if(!(state.players[i].normalize()  === playerName.normalize())) {
+				newPlayerArr.push(state.players[i]);
+			}
+		}
+
+		state.players = newPlayerArr;
 	}
 
 	if(dat.endsWith("\n")) {

@@ -1,5 +1,5 @@
 {
-  "name": "MCServerControl",
+  "name": "servercontrol",
   "version": "1.0.0",
   "author": "Shahar Sandhaus",
   "repository": {
@@ -7,7 +7,7 @@
     "url": "https://github.com/sharhar/FTBServerMonitor.git"
   },
   "main": "sudo node server.js",
-  "//": "@types/node being a normal dependency is not ideal, but it ensures it’s installed automatically",
+  "//": "@types/node being a normal dependency is not ideal, but it ensures it's installed automatically",
   "dependencies": {
     "@rauschma/stringio": "^1.4.0"
   }

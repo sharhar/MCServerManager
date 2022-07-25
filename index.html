@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>FTB Server Monitor</title>
+	<title>Server Monitor</title>
 
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
 
@@ -11,18 +11,18 @@
 
   <div class="starter-template text-center py-5 px-3">
   	<div id="start">
-  		<h1>FTB Server Status<div style="color: gray;">Checking</div></h1>
+  		<h1>Server Status<div style="color: gray;">Checking</div></h1>
   	</div>
   	<div id="offline" style="display: none;">
-  		<h1>FTB Server Status<div style="color: red;">Offline</div></h1>
+  		<h1>Server Status<div style="color: red;">Offline</div></h1>
   		<button type="button" class="btn btn-outline-success btn-lg" onclick="fetch('/click', {method: 'POST'})">Start Server</button>
   	</div>
   	<div id="init" style="display: none;">
-  		<h1>FTB Server Status<div style="color: orange;">Starting...</div></h1>
+  		<h1>Server Status<div style="color: orange;">Starting...</div></h1>
   		<br><h5>Server initialization will take around 30 seconds. Please be patient.</h5>
   	</div>
 	<div id="load" style="display: none;">
-		<h1>FTB Server Status<div style="color: orange;">Loading world...</div></h1>
+		<h1>Server Status<div style="color: orange;">Loading world...</div></h1>
 
 		<br>
 
@@ -39,7 +39,7 @@
 		<!-- <br><h5>Server loading will take several minutes. Please be patient.</h5> -->
 	</div>
   	<div id="online" style="display: none;">
-  		<h1>FTB Server Status<div style="color: green;">Online</div></h1>
+  		<h1>Server Status<div style="color: green;">Online</div></h1>
   		<button type="button" class="btn btn-outline-warning btn-lg" style="position: absolute; top: 10px; left: 10px;"  onclick="fetch('/day', {method: 'POST'})">Set day</button>
   		<button type="button" class="btn btn-outline-dark btn-lg" style="position: absolute; top: 70px; left: 10px;"  onclick="fetch('/night', {method: 'POST'})">Set night</button>
   		<button type="button" class="btn btn-outline-secondary btn-lg" style="position: absolute; top: 130px; left: 10px;"  onclick="fetch('/wc', {method: 'POST'})">Clear Weather</button>

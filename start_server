@@ -3,7 +3,6 @@
 const http = require('http');
 const fs = require('fs');
 const { spawn } = require("child_process");
-const {streamWrite, streamEnd, onExit} = require('@rauschma/stringio');
 
 var state = {
 	"status": 0,
@@ -11,12 +10,23 @@ var state = {
 	"players": []
 };
 
+function load_settings() {
+	try {
+		return fs.readFileSync("settings.json", "utf8");
+	} catch (err) {
+		console.error(err);
+		return null;
+	}
+}
+
+var settings = JSON.parse(load_settings());
+
 var start_requested = false;
 var server_running = false;
 
 function load_html() {
 	try {
-		return fs.readFileSync('index.html', 'utf8');
+		return fs.readFileSync(settings.html, settings.html_encoding);
 	} catch (err) {
 		console.error(err);
 		return null;
@@ -24,6 +34,21 @@ function load_html() {
 }
 
 var html_cache = load_html();
+
+
+/*{
+	"port": 5000,
+	"java_bin": "java",
+	"server_launch_vars": ["-Xmx8G", "-jar", "server.jar"],
+	"html": "index.html",
+	"html_encoding": "utf8",
+	"password": "shahariscool",
+	"allow_time_set_day": true,
+	"allow_time_set_night": true,
+	"allow_weather_clear": true,
+	"allow_tp": true,
+	"enable_html_caching": true
+};*/
 
 var proc = null;
 
@@ -34,21 +59,21 @@ const server = http.createServer(function(req, res) {
 		} 
 
 		if(proc != null) {
-			if (req.url.startsWith("/stop")) {
+			if (req.url.startsWith("/stop") && settings.password.length > 0) {
 				var pass = req.url.substring(6);
-				if(pass == "shahariscool") {
+				if(pass == settings.password) {
 					streamWrite(proc.stdin, 'stop\n');
 					streamEnd(proc.stdin);
 				}
-			} else if (req.url == "/day") {
-					streamWrite(proc.stdin, 'time set day\n');
-			} else if (req.url == "/night") {
-					streamWrite(proc.stdin, 'time set night\n');
-			} else if (req.url == "/wc") {
-					streamWrite(proc.stdin, 'weather clear\n');
-			} else if (req.url.startsWith("/tp")) {
-					var url_parts = req.url.split("-");
-					streamWrite(proc.stdin, "tp " + url_parts[1] + " " + url_parts[2] + '\n');
+			} else if (settings.allow_time_set_day && req.url == "/day") {
+				streamWrite(proc.stdin, 'time set day\n');
+			} else if (settings.allow_time_set_night && req.url == "/night") {
+				streamWrite(proc.stdin, 'time set night\n');
+			} else if (settings.allow_weather_clear && req.url == "/wc") {
+				streamWrite(proc.stdin, 'weather clear\n');
+			} else if (settings.allow_tp && req.url.startsWith("/tp")) {
+				var url_parts = req.url.split("-");
+				streamWrite(proc.stdin, "tp " + url_parts[1] + " " + url_parts[2] + '\n');
 			}
 		}
 
@@ -58,7 +83,7 @@ const server = http.createServer(function(req, res) {
 		if(req.url == '/check') {
 			res.end(JSON.stringify(state));
 		} else {
-			if(process.argv[2] == "--dynamic" || process.argv[2] == "-d" ) {
+			if(settings.enable_html_caching) {
 				res.end(load_html());
 			} else {
 				res.end(html_cache);
@@ -67,8 +92,8 @@ const server = http.createServer(function(req, res) {
 	}
 });
 
-server.listen(80, function() {
-	console.log('Server running at http://127.0.0.1:80');
+server.listen(settings.port, function() {
+	console.log('Server running at http://127.0.0.1:' + settings.port);
 });
 
 function proc_stdout(dat) {
@@ -83,14 +108,14 @@ function proc_stdout(dat) {
 		finalPart = parts[parts.length - 1].substring(1);
 		playerName = finalPart.substring(0, finalPart.length - 17);
 
-		state.players.push(playerName)
+		state.players.push(playerName);
 
 	} else if (dat.includes(' left the game')) {
 		parts = dat.split(':');
 		finalPart = parts[parts.length - 1].substring(1);
 		playerName = finalPart.substring(0, finalPart.length - 15);
 
-		newPlayerArr = []
+		newPlayerArr = [];
 
 		for(var i = 0; i < state.players.length; i++) {
 			if(!(state.players[i].normalize()  === playerName.normalize())) {
@@ -112,9 +137,9 @@ function serverStarter() {
 	if(start_requested && !server_running) {
 		server_running = true;
 
-		process.chdir('./server')
-		proc = spawn("java", ["-Xmx8G", "-jar", "server.jar"]);
-		process.chdir('..')
+		process.chdir('./server');
+		proc = spawn(settings.java_bin, settings.server_launch_vars);
+		process.chdir('..');
 
 		state.percent = 0;
 		state.status = 1;
@@ -147,3 +172,79 @@ function serverStarter() {
 }
 
 setTimeout(serverStarter, 0); 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+The following code is a slightly modified version of a part of the @rauschma/stringio npm package.
+As per the licence of the library, a copy of the library's licence is providede below the code.
+
+*/
+
+function streamWrite(stream, chunk, encoding = 'utf8')  {
+	// Get notified via callback when it’s “safe” to write again.
+	// The alternatives are:
+	// – 'drain' event waits until buffering is below “high water mark”
+	// – callback waits until written content is unbuffered
+	return streamPromiseHelper(stream, callback => stream.write(chunk, encoding, callback));
+}
+
+function streamEnd(stream) {
+	return streamPromiseHelper(stream, callback => stream.end(callback));
+}
+
+function streamPromiseHelper(emitter, operation) {
+	return new Promise((resolve, reject) => {
+		const errListener = (err) => {
+			emitter.removeListener('error', errListener);
+			reject(err);
+		};
+
+		emitter.addListener('error', errListener);
+		
+		const callback = () => {
+			emitter.removeListener('error', errListener);
+			resolve(undefined);
+		};
+		
+		operation(callback);
+	});
+}
+
+/*
+
+MIT License
+
+Copyright (c) 2018 Axel Rauschmayer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/

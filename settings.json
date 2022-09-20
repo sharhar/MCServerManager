@@ -5,9 +5,11 @@
 	"html": "index.html",
 	"html_encoding": "utf8",
 	"password": "shahariscool2",
-	"allow_time_set_day": false,
-	"allow_time_set_night": true,
-	"allow_weather_clear": true,
-	"allow_tp": false,
-	"enable_html_caching": true
+	"enable_html_caching": false,
+	"permissions": {
+		"allow_time_set_day": false,
+		"allow_time_set_night": true,
+		"allow_weather_clear": true,
+		"allow_tp": false
+	}
 }

@@ -14,7 +14,7 @@
   		<h1>Server Status<div style="color: gray;">Checking</div></h1>
   	</div>
   	<div id="offline" style="display: none;">
-  		<h1>Server Status<div style="color: red;">Offline</div></h1>
+  		<h1>Server Status<div style="color: red;">Offlined</div></h1>
   		<button type="button" class="btn btn-outline-success btn-lg" onclick="fetch('/click', {method: 'POST'})">Start Server</button>
   	</div>
   	<div id="init" style="display: none;">
@@ -40,9 +40,9 @@
 	</div>
   	<div id="online" style="display: none;">
   		<h1>Server Status<div style="color: green;">Online</div></h1>
-  		<button type="button" class="btn btn-outline-warning btn-lg" style="position: absolute; top: 10px; left: 10px;"  onclick="fetch('/day', {method: 'POST'})">Set day</button>
-  		<button type="button" class="btn btn-outline-dark btn-lg" style="position: absolute; top: 70px; left: 10px;"  onclick="fetch('/night', {method: 'POST'})">Set night</button>
-  		<button type="button" class="btn btn-outline-secondary btn-lg" style="position: absolute; top: 130px; left: 10px;"  onclick="fetch('/wc', {method: 'POST'})">Clear Weather</button>
+  		<button type="button" id="set-day-btn" class="btn btn-outline-warning btn-lg" style="position: absolute; top: 10px; left: 10px;"  onclick="fetch('/day', {method: 'POST'})">Set day</button>
+  		<button type="button" id="set-night-btn" class="btn btn-outline-dark btn-lg" style="position: absolute; top: 70px; left: 10px;"  onclick="fetch('/night', {method: 'POST'})">Set night</button>
+  		<button type="button" id="set-weather-clear-btn"class="btn btn-outline-secondary btn-lg" style="position: absolute; top: 130px; left: 10px;"  onclick="fetch('/wc', {method: 'POST'})">Clear Weather</button>
   		<div id="teleport-div" style="position: absolute; top: 190px; left: 10px; border-style: solid;">
   			<div style="padding: 10px;">
   				<p>
@@ -158,7 +158,11 @@
 
 				player_list_string = status.players + "";
 
-				if(status.players.length > 1) {
+				document.getElementById('set-day-btn'          ).style.display = status.permissions.allow_time_set_day   ? 'initial' : 'none';
+				document.getElementById('set-night-btn'        ).style.display = status.permissions.allow_time_set_night ? 'initial' : 'none';
+				document.getElementById('set-weather-clear-btn').style.display = status.permissions.allow_weather_clear  ? 'initial' : 'none';
+
+				if(status.players.length > 1 && status.permissions.allow_tp) {
 					document.getElementById('teleport-div').style.display = 'initial';
 				} else {
 					document.getElementById('teleport-div').style.display = 'none';

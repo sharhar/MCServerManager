@@ -7,7 +7,13 @@ const { spawn } = require("child_process");
 var state = {
 	"status": 0,
 	"percent": 0,
-	"players": []
+	"players": [],
+	"permissions": {
+		"allow_time_set_day": false,
+		"allow_time_set_night": false,
+		"allow_weather_clear": false,
+		"allow_tp": false
+	}
 };
 
 function load_settings() {
@@ -35,21 +41,6 @@ function load_html() {
 
 var html_cache = load_html();
 
-
-/*{
-	"port": 5000,
-	"java_bin": "java",
-	"server_launch_vars": ["-Xmx8G", "-jar", "server.jar"],
-	"html": "index.html",
-	"html_encoding": "utf8",
-	"password": "shahariscool",
-	"allow_time_set_day": true,
-	"allow_time_set_night": true,
-	"allow_weather_clear": true,
-	"allow_tp": true,
-	"enable_html_caching": true
-};*/
-
 var proc = null;
 
 const server = http.createServer(function(req, res) {
@@ -65,13 +56,13 @@ const server = http.createServer(function(req, res) {
 					streamWrite(proc.stdin, 'stop\n');
 					streamEnd(proc.stdin);
 				}
-			} else if (settings.allow_time_set_day && req.url == "/day") {
+			} else if (settings.permissions.allow_time_set_day && req.url == "/day") {
 				streamWrite(proc.stdin, 'time set day\n');
-			} else if (settings.allow_time_set_night && req.url == "/night") {
+			} else if (settings.permissions.allow_time_set_night && req.url == "/night") {
 				streamWrite(proc.stdin, 'time set night\n');
-			} else if (settings.allow_weather_clear && req.url == "/wc") {
+			} else if (settings.permissions.allow_weather_clear && req.url == "/wc") {
 				streamWrite(proc.stdin, 'weather clear\n');
-			} else if (settings.allow_tp && req.url.startsWith("/tp")) {
+			} else if (settings.permissions.allow_tp && req.url.startsWith("/tp")) {
 				var url_parts = req.url.split("-");
 				streamWrite(proc.stdin, "tp " + url_parts[1] + " " + url_parts[2] + '\n');
 			}
@@ -83,7 +74,7 @@ const server = http.createServer(function(req, res) {
 		if(req.url == '/check') {
 			res.end(JSON.stringify(state));
 		} else {
-			if(settings.enable_html_caching) {
+			if(!settings.enable_html_caching) {
 				res.end(load_html());
 			} else {
 				res.end(html_cache);
@@ -170,6 +161,8 @@ function serverStarter() {
 
 	setTimeout(serverStarter, 100); 
 }
+
+state.permissions = settings.permissions;
 
 setTimeout(serverStarter, 0); 
 
